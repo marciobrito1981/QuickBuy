@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SpaServices.AngularCli;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.ObjectPool;
+using QuickBuy.Dominio.Contratos;
+using QuickBuy.Repositorio.Repositorios;
 using QuickBuy.Repositorio.Context;
 
 namespace QuickBuy.Web
@@ -30,7 +30,12 @@ namespace QuickBuy.Web
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             var connectionString = Configuration.GetConnectionString("MySqlConnection");
-            services.AddDbContext<QuickBuyContext>(option => option.UseMySql(connectionString, m => m.MigrationsAssembly("QuickBuy.Repositorio")));
+            services.AddDbContext<QuickBuyContext>(option => 
+                                                            option.UseLazyLoadingProxies()
+                                                            .UseMySql(connectionString, m => 
+                                                                                            m.MigrationsAssembly("QuickBuy.Repositorio")));
+
+            services.AddScoped<IProdutoRepositorio, ProdutoRepositorio>();
 
             // In production, the Angular files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
@@ -73,8 +78,8 @@ namespace QuickBuy.Web
 
                 if (env.IsDevelopment())
                 {
-                    //spa.UseProxyToSpaDevelopmentServer("http://localhost:4200/");
-                    spa.UseAngularCliServer(npmScript: "start");
+                    spa.UseProxyToSpaDevelopmentServer("http://localhost:4200/");
+                    //spa.UseAngularCliServer(npmScript: "start");
                 }
             });
         }
